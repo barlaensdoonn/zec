@@ -3,8 +3,6 @@
 # 07/19/17
 # updated 07/28/17
 
-# TODO: when balance is updated, backup wallet
-
 import sys
 import time
 import json
@@ -21,6 +19,11 @@ louie_addr = addrs.louie
 taddr = addrs.t_addr
 
 
+def get_now():
+    now = datetime.now()
+    return now.strftime('%m%d%y%H%M%S')
+
+
 def get_info():
     test = subprocess.check_output(['zcash-cli', 'getinfo'])
     return json.loads(test.decode(sys.stdout.encoding))
@@ -32,8 +35,19 @@ def get_balance(addr):
 
 
 def send_zec(amnt):
-    process = subprocess.run(['zcash-cli', 'sendtoaddress', louie_addr, str(amnt), 'louie mining cut', 'louie-jaxx', 'true'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-    return process
+    return subprocess.run(['zcash-cli', 'sendtoaddress', louie_addr, str(amnt), 'louie mining cut', 'louie-jaxx', 'true'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+
+
+def backup_wallet(now):
+    bckp = subprocess.run(['zcash-cli', 'backupwallet', 'zecdmp{}'.format(now)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+
+    if bckp.returncode == 0:
+        logger.info('wallet backed up as {}'.format(bckp.stdout.strip()))
+    else:
+        logger.warning('unable to backup wallet')
+        logger.warning('subprocess return code: {}'.format(bckp.returncode))
+        logger.warning('subprocess stderr: {}'.format(bckp.stderr))
+        logger.warning('subprocess object: {}'.format(bckp))
 
 
 def parse_change(new_balance, balance):
@@ -97,6 +111,7 @@ if __name__ == '__main__':
 
                 if new_balance != balance:
                     parse_change(new_balance, balance)
+                    backup_wallet(get_now())
                     balance = new_balance
 
                 time.sleep(1)
