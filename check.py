@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 # use zcash-cli in python
 # 07/19/17
-# updated 07/27/17
+# updated 07/28/17
 
-#TODO: when balance is updated, backup wallet
+# TODO: when balance is updated, backup wallet
 
 import sys
 import time
@@ -16,7 +16,7 @@ import logging.config
 from datetime import datetime
 
 # $$$ paid / cost of GPU / total # GPUs mining to taddr
-louies_cut = 400 / 730 / 2
+louies_percent = 400 / 715 / 2
 louie_addr = addrs.louie
 taddr = addrs.t_addr
 
@@ -31,6 +31,39 @@ def get_balance(addr):
     return float(balance.decode(sys.stdout.encoding).strip())
 
 
+def send_zec(amnt):
+    process = subprocess.run(['zcash-cli', 'sendtoaddress', louie_addr, str(amnt), 'louie mining cut', 'louie-jaxx', 'true'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    return process
+
+
+def parse_change(new_balance, balance):
+    payment = new_balance - balance
+
+    if payment > 0:
+        mvmnt = 'increase'
+    elif payment < 0:
+        mvmnt = 'decrease'
+
+    log_new_balance(new_balance, balance, payment, mvmnt)
+
+    if mvmnt == 'increase':
+        louies_cut = payment * louies_percent
+        logger.info("louie's cut: {}".format(louies_cut))
+        logger.info('sending louie mining reward of {}'.format(louies_cut))
+        sent = send_zec(louies_cut)
+
+        if sent.returncode == 0:
+            txid = sent.stdout.strip()
+            logger.info('sent {} to louie [txid: {}]'.format(louies_cut, txid))
+        else:
+            logger.error('{} not sent!!!')
+            logger.error('subprocess return code: {}'.format(sent.returncode))
+            logger.error('subprocess stderr: {}'.format(sent.stderr))
+            logger.error('subprocess object: {}'.format(sent))
+    elif mvmnt == 'decrease':
+        logger.info('balance lowered by action external to this script')
+
+
 def initialize_logger():
     with open('ignore/pay_log.yaml', 'r') as log_conf:
         log_config = yaml.safe_load(log_conf)
@@ -41,6 +74,13 @@ def initialize_logger():
     logger.info('ZEC payment logger instantiated')
 
     return logger
+
+
+def log_new_balance(nblnc, blnc, pymnt, mvmnt):
+    logger.info('balance updated: {}'.format(mvmnt))
+    logger.info('old balance: {}'.format(blnc))
+    logger.info('new balance: {}'.format(nblnc))
+    logger.info('payment amount: {}'.format(pymnt))
 
 
 if __name__ == '__main__':
@@ -56,27 +96,10 @@ if __name__ == '__main__':
                 new_balance = get_balance(taddr)
 
                 if new_balance != balance:
-                    if new_balance > balance:
-                        payment = new_balance - balance
-                        logger.info('balance updated: increase')
-                        logger.info('old balance: {}'.format(balance))
-                        logger.info('new balance: {}'.format(new_balance))
-                        logger.info('payment amount: {}'.format(payment))
-                        louie = payment * louies_cut
-                        logger.info("louie's cut: {}".format(louie))
-                        balance = new_balance
-                        time.sleep(1)
-                    elif new_balance < balance:
-                        payment = new_balance - balance
-                        logger.info('balance updated: decrease')
-                        logger.info('old balance: {}'.format(balance))
-                        logger.info('new balance: {}'.format(new_balance))
-                        logger.info('payment amount: {}'.format(payment))
-                        logger.info('balance lowered by action external to this script')
-                        balance = new_balance
-                        time.sleep(1)
-                else:
-                    time.sleep(1)
+                    parse_change(new_balance, balance)
+                    balance = new_balance
+
+                time.sleep(1)
 
     except KeyboardInterrupt:
         logger.info('...user exit received...')
