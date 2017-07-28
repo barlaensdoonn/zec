@@ -16,7 +16,7 @@ import logging.config
 from datetime import datetime
 
 # $$$ paid / cost of GPU / total # GPUs mining to taddr
-louies_cut = 400/730/2
+louies_cut = 400 / 730 / 2
 louie_addr = addrs.louie
 taddr = addrs.t_addr
 
@@ -29,11 +29,6 @@ def get_info():
 def get_balance(addr):
     balance = subprocess.check_output(['zcash-cli', 'z_getbalance', addr])
     return float(balance.decode(sys.stdout.encoding).strip())
-
-
-def get_now():
-    now = datetime.now()
-    return now.strftime('%m/%d/%y %H:%M:%S')
 
 
 def initialize_logger():
@@ -61,15 +56,25 @@ if __name__ == '__main__':
                 new_balance = get_balance(taddr)
 
                 if new_balance != balance:
-                    payment = new_balance - balance
-                    louie_pay = payment * louies_cut
-                    logger.info('balance updated')
-                    logger.info('old balance: {}'.format(balance))
-                    logger.info('new balance: {}'.format(new_balance))
-                    logger.info('payment amount: {}'.format(payment))
-                    logger.info("louie's cut: {}".format(louie_pay))
-                    balance = new_balance
-                    time.sleep(1)
+                    if new_balance > balance:
+                        payment = new_balance - balance
+                        logger.info('balance updated: increase')
+                        logger.info('old balance: {}'.format(balance))
+                        logger.info('new balance: {}'.format(new_balance))
+                        logger.info('payment amount: {}'.format(payment))
+                        louie = payment * louies_cut
+                        logger.info("louie's cut: {}".format(louie))
+                        balance = new_balance
+                        time.sleep(1)
+                    elif new_balance < balance:
+                        payment = new_balance - balance
+                        logger.info('balance updated: decrease')
+                        logger.info('old balance: {}'.format(balance))
+                        logger.info('new balance: {}'.format(new_balance))
+                        logger.info('payment amount: {}'.format(payment))
+                        logger.info('balance lowered by action external to this script')
+                        balance = new_balance
+                        time.sleep(1)
                 else:
                     time.sleep(1)
 
