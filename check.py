@@ -8,15 +8,11 @@ import time
 import json
 import yaml
 import addrs
+import check_lew
 import subprocess
 import logging
 import logging.config
 from datetime import datetime
-
-# $$$ paid / cost of GPU / total # GPUs mining to taddr
-louies_percent = 500 / 715 / 2
-louie_addr = addrs.louie
-taddr = addrs.t_addr
 
 
 def get_now():
@@ -29,13 +25,49 @@ def get_info():
     return json.loads(test.decode(sys.stdout.encoding))
 
 
-def get_balance(addr):
-    balance = subprocess.check_output(['zcash-cli', 'z_getbalance', addr])
+def get_balance():
+    taddr = addrs.t_addr
+    balance = subprocess.check_output(['zcash-cli', 'z_getbalance', taddr])
     return float(balance.decode(sys.stdout.encoding).strip())
 
 
+def calculate_lews_cut(pymnt):
+    # $$$ paid / cost of GPU / total # GPUs mining to taddr
+    lews_percent = 500 / 715 / 2
+    lews_cut = pymnt * lews_percent
+    lews_cut = round(lews_cut, 8)
+    logger.info("lew's cut: {}".format(lews_cut))
+
+    return lews_cut
+
+
 def send_zec(amnt):
-    return subprocess.run(['zcash-cli', 'sendtoaddress', louie_addr, str(amnt), 'louie mining cut', 'louie-jaxx', 'true'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    lew_addr = addrs.lew
+
+    logger.info('sending lew mining reward of {}'.format(amnt))
+    sent = subprocess.run(['zcash-cli', 'sendtoaddress', lew_addr, str(amnt), 'lew mining cut', 'lew-jaxx', 'true'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+
+    if sent.returncode == 0:
+        txid = sent.stdout.strip()
+        logger.info('sent {} to lew [txid: {}]'.format(amnt, txid))
+        return True
+    else:
+        logger.error('{} not sent!!!'.format(amnt))
+        log_nonzero_returncode(sent)
+        return False
+
+
+def pickle_and_copy(pickle_flag):
+    pckld_path = check_lew.get_pymnts(pickle_flag=pickle_flag)
+    logger.info('pickled total zec paid to lew for external earnings calculations')
+
+    scp = subprocess.run(['scp', pckld_path, addrs.scp_path])
+
+    if scp.returncode == 0:
+        logger.info('sent pickle to remote host')
+    else:
+        logger.error('unable to send pickle to remote host')
+        log_nonzero_returncode(scp)
 
 
 def backup_wallet(now):
@@ -44,10 +76,8 @@ def backup_wallet(now):
     if bckp.returncode == 0:
         logger.info('wallet backed up as {}'.format(bckp.stdout.strip()))
     else:
-        logger.warning('unable to backup wallet')
-        logger.warning('subprocess return code: {}'.format(bckp.returncode))
-        logger.warning('subprocess stderr: {}'.format(bckp.stderr))
-        logger.warning('subprocess object: {}'.format(bckp))
+        logger.error('unable to backup wallet')
+        log_nonzero_returncode(bckp)
 
 
 def parse_change(new_balance, balance):
@@ -61,20 +91,12 @@ def parse_change(new_balance, balance):
     log_new_balance(new_balance, balance, payment, mvmnt)
 
     if mvmnt == 'increase':
-        louies_cut = payment * louies_percent
-        louies_cut = round(louies_cut, 8)
-        logger.info("louie's cut: {}".format(louies_cut))
-        logger.info('sending louie mining reward of {}'.format(louies_cut))
-        sent = send_zec(louies_cut)
+        lews_cut = calculate_lews_cut(payment)
+        pickle_flag = send_zec(lews_cut)
 
-        if sent.returncode == 0:
-            txid = sent.stdout.strip()
-            logger.info('sent {} to louie [txid: {}]'.format(louies_cut, txid))
-        else:
-            logger.error('{} not sent!!!'.format(louies_cut))
-            logger.error('subprocess return code: {}'.format(sent.returncode))
-            logger.error('subprocess stderr: {}'.format(sent.stderr))
-            logger.error('subprocess object: {}'.format(sent))
+        if pickle_flag:
+            pickle_and_copy(pickle_flag)
+
     elif mvmnt == 'decrease':
         logger.info('balance lowered by action external to this script')
 
@@ -98,17 +120,23 @@ def log_new_balance(nblnc, blnc, pymnt, mvmnt):
     logger.info('payment amount: {}'.format(pymnt))
 
 
+def log_nonzero_returncode(process):
+    logger.warning('subprocess return code: {}'.format(process.returncode))
+    logger.warning('subprocess stderr: {}'.format(process.stderr))
+    logger.warning('subprocess object: {}'.format(process))
+
+
 if __name__ == '__main__':
     logger = initialize_logger()
     polling = True
-    balance = get_balance(taddr)
+    balance = get_balance()
     new_balance = balance
     logger.info('initial balance: {}'.format(balance))
 
     try:
         while polling:
             if int(datetime.now().timestamp() % 60) == 0:
-                new_balance = get_balance(taddr)
+                new_balance = get_balance()
 
                 if new_balance != balance:
                     parse_change(new_balance, balance)
