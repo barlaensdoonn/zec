@@ -71,7 +71,7 @@ def parse_change(new_balance, balance):
             txid = sent.stdout.strip()
             logger.info('sent {} to louie [txid: {}]'.format(louies_cut, txid))
         else:
-            logger.error('{} not sent!!!')
+            logger.error('{} not sent!!!'.format(louies_cut))
             logger.error('subprocess return code: {}'.format(sent.returncode))
             logger.error('subprocess stderr: {}'.format(sent.stderr))
             logger.error('subprocess object: {}'.format(sent))
@@ -80,13 +80,13 @@ def parse_change(new_balance, balance):
 
 
 def initialize_logger():
-    with open('ignore/pay_log.yaml', 'r') as log_conf:
+    with open('ignore/zec_log.yaml', 'r') as log_conf:
         log_config = yaml.safe_load(log_conf)
 
     logging.config.dictConfig(log_config)
-    logger = logging.getLogger('pay')
+    logger = logging.getLogger('zec')
     logger.info('* * * * * * * * * * * * * * * * * * * *')
-    logger.info('ZEC payment logger instantiated')
+    logger.info('ZEC logger instantiated')
 
     return logger
 
