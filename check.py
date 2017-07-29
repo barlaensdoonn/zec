@@ -14,7 +14,7 @@ import logging.config
 from datetime import datetime
 
 # $$$ paid / cost of GPU / total # GPUs mining to taddr
-louies_percent = 400 / 715 / 2
+louies_percent = 500 / 715 / 2
 louie_addr = addrs.louie
 taddr = addrs.t_addr
 
@@ -62,6 +62,7 @@ def parse_change(new_balance, balance):
 
     if mvmnt == 'increase':
         louies_cut = payment * louies_percent
+        louies_cut = round(louies_cut, 8)
         logger.info("louie's cut: {}".format(louies_cut))
         logger.info('sending louie mining reward of {}'.format(louies_cut))
         sent = send_zec(louies_cut)
