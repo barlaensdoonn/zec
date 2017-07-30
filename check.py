@@ -49,7 +49,7 @@ def send_zec(amnt):
 
     if sent.returncode == 0:
         txid = sent.stdout.strip()
-        logger.info('sent {} to lew [txid: {}]'.format(amnt, txid))
+        logger.info('sent lew {} [txid: {}]'.format(amnt, txid))
         return True
     else:
         logger.error('{} not sent!!!'.format(amnt))
@@ -97,9 +97,6 @@ def parse_change(new_balance, balance):
         if pickle_flag:
             pickle_and_copy(pickle_flag)
 
-    elif mvmnt == 'decrease':
-        logger.info('balance lowered by action external to this script')
-
 
 def initialize_logger():
     with open('ignore/zec_log.yaml', 'r') as log_conf:
@@ -142,6 +139,7 @@ if __name__ == '__main__':
                     parse_change(new_balance, balance)
                     backup_wallet(get_now())
                     balance = new_balance
+                    logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
                 time.sleep(1)
 
