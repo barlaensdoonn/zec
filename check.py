@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # use zcash-cli in python
-# 07/19/17
-# updated 07/28/17
+# 7/19/17
+# updated 08/4/17
 
 import sys
 import time
@@ -20,6 +20,10 @@ def get_now():
     return now.strftime('%m%d%y%H%M%S')
 
 
+def scp(local_path, remote_path):
+    return subprocess.run(['scp', local_path, remote_path])
+
+
 def get_info():
     test = subprocess.check_output(['zcash-cli', 'getinfo'])
     return json.loads(test.decode(sys.stdout.encoding))
@@ -33,7 +37,7 @@ def get_balance():
 
 def calculate_lews_cut(pymnt):
     # $$$ paid / cost of GPU / total # GPUs mining to taddr
-    lews_percent = 500 / 715 / 2
+    lews_percent = 600 / 700 / 4
     lews_cut = pymnt * lews_percent
     lews_cut = round(lews_cut, 8)
     logger.info("lew's cut: {}".format(lews_cut))
@@ -61,23 +65,39 @@ def pickle_and_copy(pickle_flag):
     pckld_path = check_lew.get_pymnts(pickle_flag=pickle_flag)
     logger.info('pickled total zec paid to lew for external earnings calculations')
 
-    scp = subprocess.run(['scp', pckld_path, addrs.scp_path])
+    scpckl = scp(pckld_path, addrs.scp_pickle)
 
-    if scp.returncode == 0:
+    if scpckl.returncode == 0:
         logger.info('sent pickle to remote host')
     else:
         logger.error('unable to send pickle to remote host')
-        log_nonzero_returncode(scp)
+        log_nonzero_returncode(scpckl)
 
 
 def backup_wallet(now):
     bckp = subprocess.run(['zcash-cli', 'backupwallet', 'zecdmp{}'.format(now)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
     if bckp.returncode == 0:
-        logger.info('wallet backed up as {}'.format(bckp.stdout.strip()))
+        wallet_path = bckp.stdout.strip()
+        logger.info('wallet backed up as {}'.format(wallet_path))
+        return wallet_path
     else:
         logger.error('unable to backup wallet')
         log_nonzero_returncode(bckp)
+        return None
+
+
+def copy_wallet(wllt_path):
+    if not wllt_path:
+        return
+    else:
+        scpwllt = scp(wllt_path, addrs.scp_wallet)
+
+        if scpwllt.returncode == 0:
+            logger.info('backed up wallet to remote host')
+        else:
+            logger.error('unable to backup wallet to remote host')
+            log_nonzero_returncode(scpwllt)
 
 
 def parse_change(new_balance, balance):
@@ -129,6 +149,7 @@ if __name__ == '__main__':
     balance = get_balance()
     new_balance = balance
     logger.info('initial balance: {}'.format(balance))
+    logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
     try:
         while polling:
@@ -137,7 +158,8 @@ if __name__ == '__main__':
 
                 if new_balance != balance:
                     parse_change(new_balance, balance)
-                    backup_wallet(get_now())
+                    bckd_up = backup_wallet(get_now())
+                    copy_wallet(bckd_up)
                     balance = new_balance
                     logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
