@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # use zcash-cli in python
 # 7/19/17
-# updated 08/4/17
+# updated 08/6/17
 
 import sys
 import time
@@ -63,7 +63,7 @@ def send_zec(amnt):
 
 def pickle_and_copy(pickle_flag):
     pckld_path = check_lew.get_pymnts(pickle_flag=pickle_flag)
-    logger.info('pickled total zec paid to lew for external earnings calculations')
+    logger.info('pickling total zec paid to lew for external earnings calculations')
 
     scpckl = scp(pckld_path, addrs.scp_pickle)
 
