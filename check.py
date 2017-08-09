@@ -164,6 +164,7 @@ if __name__ == '__main__':
                     logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
                 time.sleep(1)
-
+    except Exception as e:
+        logger.exception('encountered error, printing traceback')
     except KeyboardInterrupt:
         logger.info('...user exit received...')
