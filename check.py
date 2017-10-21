@@ -1,8 +1,11 @@
 #!/usr/bin/python3
 # use zcash-cli in python
 # 7/19/17
-# updated 08/6/17
+# updated 10/10/17
 
+# TODO: change lews_percent variable in calculate_lews_cut to something that is passed in?
+
+import os
 import sys
 import time
 import json
@@ -13,6 +16,10 @@ import subprocess
 import logging
 import logging.config
 from datetime import datetime
+
+
+def get_dir_path():
+    return os.path.dirname(os.path.realpath(__file__))
 
 
 def get_now():
@@ -37,7 +44,7 @@ def get_balance():
 
 def calculate_lews_cut(pymnt):
     # $$$ paid / cost of GPU / total # GPUs mining to taddr
-    lews_percent = 600 / 700 / 4
+    lews_percent = 0.25
     lews_cut = pymnt * lews_percent
     lews_cut = round(lews_cut, 8)
     logger.info("lew's cut: {}".format(lews_cut))
@@ -119,7 +126,9 @@ def parse_change(new_balance, balance):
 
 
 def initialize_logger():
-    with open('ignore/zec_log.yaml', 'r') as log_conf:
+    conf_path = os.path.join(get_dir_path(), 'ignore/zec_log.yaml')
+
+    with open(conf_path, 'r') as log_conf:
         log_config = yaml.safe_load(log_conf)
 
     logging.config.dictConfig(log_config)
@@ -145,6 +154,11 @@ def log_nonzero_returncode(process):
 
 if __name__ == '__main__':
     logger = initialize_logger()
+
+    # wait for system to boot up and zcashd to start
+    logger.info('sleeping for 3 mins')
+    time.sleep(180)
+
     polling = True
     balance = get_balance()
     new_balance = balance
@@ -165,6 +179,6 @@ if __name__ == '__main__':
 
                 time.sleep(1)
     except Exception as e:
-        logger.exception('encountered error, printing traceback')
+        logger.exception('encountered error, printing traceback:')
     except KeyboardInterrupt:
         logger.info('...user exit received...')
