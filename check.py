@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # use zcash-cli in python
 # 7/19/17
-# updated 10/10/17
+# updated 10/21/17
 
 # TODO: change lews_percent variable in calculate_lews_cut to something that is passed in?
 
@@ -165,8 +165,8 @@ if __name__ == '__main__':
     logger.info('initial balance: {}'.format(balance))
     logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
-    try:
-        while polling:
+    while polling:
+        try:
             if int(datetime.now().timestamp() % 60) == 0:
                 new_balance = get_balance()
 
@@ -178,7 +178,8 @@ if __name__ == '__main__':
                     logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
                 time.sleep(1)
-    except Exception as e:
-        logger.exception('encountered error, printing traceback:')
-    except KeyboardInterrupt:
-        logger.info('...user exit received...')
+        except Exception as e:
+            logger.exception('encountered error, printing traceback:')
+        except KeyboardInterrupt:
+            logger.info('...user exit received...')
+            polling = False
