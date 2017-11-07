@@ -26,6 +26,10 @@ def _get_dir_path():
     return os.path.dirname(os.path.realpath(__file__))
 
 
+def _get_pickle_path(pickle_flag):
+    return check_lew.get_pymnts(pickle_flag=pickle_flag)
+
+
 def _log_new_balance(nblnc, blnc, pymnt, mvmnt):
     logger.info('balance updated: {}'.format(mvmnt))
     logger.info('old balance: {}'.format(blnc))
@@ -82,7 +86,7 @@ def send_zec(amnt):
 
 
 def pickle_and_scp(pickle_flag):
-    pckld_path = check_lew.get_pymnts(pickle_flag=pickle_flag)
+    pckld_path = _get_pickle_path(pickle_flag)
     logger.info('pickling total zec paid to lew for external earnings calculations')
 
     scpckl = _scp(pckld_path, addrs.scp_pickle)
