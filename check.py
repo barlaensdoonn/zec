@@ -95,7 +95,7 @@ def send_zec(amnt):
 
 
 def backup_wallet(now):
-    bckp = subprocess.run(['zcash-cli', 'backupwallet', 'zecdmp{}'.format(now)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    bckp = subprocess.run(['zcash-cli', 'backupwallet', 'dmp{}'.format(now)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
     if bckp.returncode == 0:
         wallet_path = bckp.stdout.strip()
@@ -129,7 +129,7 @@ def copy_pickle(pickle_flag):
     try:
         cpypckl_path = _copy(pckld_path, dst)
 
-        if os.path.isfle(pckld_path):
+        if os.path.isfile(pckld_path):
             logger.info('earnings pickle copied to {}'.format(cpypckl_path))
     except Exception as e:
         logger.exception('unable to copy pickle to {}, printing traceback:'.format(dst))
