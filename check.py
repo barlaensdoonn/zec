@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # use zcash-cli in python
 # 7/19/17
-# updated 11/6/17
+# updated 11/7/17
 
 # TODO: change lews_percent variable in calculate_lews_cut to something that is passed in
 
@@ -200,7 +200,6 @@ if __name__ == '__main__':
 
     polling = True
     balance = get_balance()
-    new_balance = balance
     logger.info('initial balance: {}'.format(balance))
     logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
