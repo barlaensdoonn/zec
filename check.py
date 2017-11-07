@@ -24,11 +24,12 @@ def _get_dir_path():
 
 
 def _get_pickle_path(pickle_flag):
+    logger.info('pickling total zec paid to lew for external earnings calculations')
     return check_lew.get_pymnts(pickle_flag=pickle_flag)
 
 
 def _copy(src_path):
-    dst = addrs.copy_path
+    dst = addrs.local_copy_path
     thng = src_path.split('/')[-1]
     dst_path = os.path.join(dst, thng)
 
@@ -117,7 +118,7 @@ def copy_wallet(wllt_path):
             if os.path.isfile(cpywllt_path):
                 logger.info('wallet backup copied to {}'.format(cpywllt_path))
         except Exception as e:
-            logger.exception('unable to copy wallet backup to {}, printing traceback:'.format(addrs.copy_path))
+            logger.exception('unable to copy wallet backup to {}, printing traceback:'.format(addrs.local_copy_path))
 
 
 def scp_wallet(wllt_path):
@@ -134,7 +135,6 @@ def scp_wallet(wllt_path):
 
 
 def scp_pickle(pickle_flag):
-    logger.info('pickling total zec paid to lew for external earnings calculations')
     pckld_path = _get_pickle_path(pickle_flag)
     scpckl = _scp(pckld_path, addrs.scp_pickle_path)
 
