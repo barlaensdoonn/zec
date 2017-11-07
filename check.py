@@ -85,19 +85,6 @@ def send_zec(amnt):
         return False
 
 
-def pickle_and_scp(pickle_flag):
-    pckld_path = _get_pickle_path(pickle_flag)
-    logger.info('pickling total zec paid to lew for external earnings calculations')
-
-    scpckl = _scp(pckld_path, addrs.scp_pickle)
-
-    if scpckl.returncode == 0:
-        logger.info('sent pickle to remote host')
-    else:
-        logger.error('unable to send pickle to remote host')
-        _log_nonzero_returncode(scpckl)
-
-
 def backup_wallet(now):
     bckp = subprocess.run(['zcash-cli', 'backupwallet', 'zecdmp{}'.format(now)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
@@ -122,6 +109,18 @@ def scp_wallet(wllt_path):
         else:
             logger.error('unable to backup wallet to remote host')
             _log_nonzero_returncode(scpwllt)
+
+
+def scp_pickle(pickle_flag):
+    logger.info('pickling total zec paid to lew for external earnings calculations')
+    pckld_path = _get_pickle_path(pickle_flag)
+    scpckl = _scp(pckld_path, addrs.scp_pickle)
+
+    if scpckl.returncode == 0:
+        logger.info('sent pickle to remote host')
+    else:
+        logger.error('unable to send pickle to remote host')
+        _log_nonzero_returncode(scpckl)
 
 
 def parse_change(new_balance, balance):
