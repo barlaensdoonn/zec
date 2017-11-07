@@ -3,7 +3,7 @@
 # 7/19/17
 # updated 10/21/17
 
-# TODO: change lews_percent variable in calculate_lews_cut to something that is passed in?
+# TODO: change lews_percent variable in calculate_lews_cut to something that is passed in
 
 import os
 import sys
@@ -102,7 +102,7 @@ def scp_wallet(wllt_path):
     if not wllt_path:
         return
     else:
-        scpwllt = _scp(wllt_path, addrs.scp_wallet)
+        scpwllt = _scp(wllt_path, addrs.scp_wallet_path)
 
         if scpwllt.returncode == 0:
             logger.info('backed up wallet to remote host')
@@ -114,7 +114,7 @@ def scp_wallet(wllt_path):
 def scp_pickle(pickle_flag):
     logger.info('pickling total zec paid to lew for external earnings calculations')
     pckld_path = _get_pickle_path(pickle_flag)
-    scpckl = _scp(pckld_path, addrs.scp_pickle)
+    scpckl = _scp(pckld_path, addrs.scp_pickle_path)
 
     if scpckl.returncode == 0:
         logger.info('sent pickle to remote host')
