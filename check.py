@@ -121,6 +121,18 @@ def copy_wallet(wllt_path):
             logger.exception('unable to copy wallet backup to {}, printing traceback:'.format(addrs.local_copy_path))
 
 
+def copy_pickle(pickle_flag):
+    pckld_path = _get_pickle_path(pickle_flag)
+
+    try:
+        cpypckl_path = _copy(pckld_path)
+
+        if os.path.isfle(pckld_path):
+            logger.info('earnings pickle copied to {}'.format(pckld_path))
+    except Exception as e:
+        logger.exception('unable to copy pickle to {}, printing traceback:'.format(pckld_path))
+
+
 def scp_wallet(wllt_path):
     if not wllt_path:
         return
@@ -160,7 +172,7 @@ def parse_change(new_balance, balance):
         pickle_flag = send_zec(lews_cut)
 
         if pickle_flag:
-            pickle_and_scp(pickle_flag)
+            copy_pickle(pickle_flag)
 
 
 def initialize_logger():
