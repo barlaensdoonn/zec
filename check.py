@@ -18,17 +18,30 @@ import logging.config
 from datetime import datetime
 
 
-def get_dir_path():
+def _scp(local_path, remote_path):
+    return subprocess.run(['scp', local_path, remote_path])
+
+
+def _get_dir_path():
     return os.path.dirname(os.path.realpath(__file__))
+
+
+def _log_new_balance(nblnc, blnc, pymnt, mvmnt):
+    logger.info('balance updated: {}'.format(mvmnt))
+    logger.info('old balance: {}'.format(blnc))
+    logger.info('new balance: {}'.format(nblnc))
+    logger.info('payment amount: {}'.format(pymnt))
+
+
+def _log_nonzero_returncode(process):
+    logger.warning('subprocess return code: {}'.format(process.returncode))
+    logger.warning('subprocess stderr: {}'.format(process.stderr))
+    logger.warning('subprocess object: {}'.format(process))
 
 
 def get_now():
     now = datetime.now()
     return now.strftime('%m%d%y%H%M%S')
-
-
-def scp(local_path, remote_path):
-    return subprocess.run(['scp', local_path, remote_path])
 
 
 def get_info():
@@ -64,7 +77,7 @@ def send_zec(amnt):
         return True
     else:
         logger.error('{} not sent!!!'.format(amnt))
-        log_nonzero_returncode(sent)
+        _log_nonzero_returncode(sent)
         return False
 
 
@@ -72,13 +85,13 @@ def pickle_and_scp(pickle_flag):
     pckld_path = check_lew.get_pymnts(pickle_flag=pickle_flag)
     logger.info('pickling total zec paid to lew for external earnings calculations')
 
-    scpckl = scp(pckld_path, addrs.scp_pickle)
+    scpckl = _scp(pckld_path, addrs.scp_pickle)
 
     if scpckl.returncode == 0:
         logger.info('sent pickle to remote host')
     else:
         logger.error('unable to send pickle to remote host')
-        log_nonzero_returncode(scpckl)
+        _log_nonzero_returncode(scpckl)
 
 
 def backup_wallet(now):
@@ -90,7 +103,7 @@ def backup_wallet(now):
         return wallet_path
     else:
         logger.error('unable to backup wallet')
-        log_nonzero_returncode(bckp)
+        _log_nonzero_returncode(bckp)
         return None
 
 
@@ -98,13 +111,13 @@ def scp_wallet(wllt_path):
     if not wllt_path:
         return
     else:
-        scpwllt = scp(wllt_path, addrs.scp_wallet)
+        scpwllt = _scp(wllt_path, addrs.scp_wallet)
 
         if scpwllt.returncode == 0:
             logger.info('backed up wallet to remote host')
         else:
             logger.error('unable to backup wallet to remote host')
-            log_nonzero_returncode(scpwllt)
+            _log_nonzero_returncode(scpwllt)
 
 
 def parse_change(new_balance, balance):
@@ -115,7 +128,7 @@ def parse_change(new_balance, balance):
     elif payment < 0:
         mvmnt = 'decrease'
 
-    log_new_balance(new_balance, balance, payment, mvmnt)
+    _log_new_balance(new_balance, balance, payment, mvmnt)
 
     if mvmnt == 'increase':
         lews_cut = calculate_lews_cut(payment)
@@ -126,7 +139,7 @@ def parse_change(new_balance, balance):
 
 
 def initialize_logger():
-    conf_path = os.path.join(get_dir_path(), 'ignore/zec_log.yaml')
+    conf_path = os.path.join(_get_dir_path(), 'ignore/zec_log.yaml')
 
     with open(conf_path, 'r') as log_conf:
         log_config = yaml.safe_load(log_conf)
@@ -137,19 +150,6 @@ def initialize_logger():
     logger.info('ZEC logger instantiated')
 
     return logger
-
-
-def log_new_balance(nblnc, blnc, pymnt, mvmnt):
-    logger.info('balance updated: {}'.format(mvmnt))
-    logger.info('old balance: {}'.format(blnc))
-    logger.info('new balance: {}'.format(nblnc))
-    logger.info('payment amount: {}'.format(pymnt))
-
-
-def log_nonzero_returncode(process):
-    logger.warning('subprocess return code: {}'.format(process.returncode))
-    logger.warning('subprocess stderr: {}'.format(process.stderr))
-    logger.warning('subprocess object: {}'.format(process))
 
 
 if __name__ == '__main__':
