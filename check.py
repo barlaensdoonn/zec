@@ -193,7 +193,6 @@ def initialize_logger():
 
 
 if __name__ == '__main__':
-    try:
         logger = initialize_logger()
         logger.info('sleeping for 3 mins')  # wait for system to boot up and zcashd to start
         time.sleep(180)
@@ -204,20 +203,21 @@ if __name__ == '__main__':
         logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
         while polling:
-            if int(datetime.now().timestamp() % 60) == 0:
-                new_balance = get_balance()
+            try:
+                if int(datetime.now().timestamp() % 60) == 0:
+                    new_balance = get_balance()
 
-                if new_balance != balance:
-                    parse_change(new_balance, balance)
-                    bckd_up = backup_wallet(get_now())
-                    copy_wallet(bckd_up)
-                    # scp_wallet(bckd_up)
-                    balance = new_balance
-                    logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
+                    if new_balance != balance:
+                        parse_change(new_balance, balance)
+                        bckd_up = backup_wallet(get_now())
+                        copy_wallet(bckd_up)
+                        # scp_wallet(bckd_up)
+                        balance = new_balance
+                        logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
-                time.sleep(1)
-    except Exception as e:
-        logger.exception('encountered error, printing traceback:')
-    except KeyboardInterrupt:
-        logger.info('...user exit received...')
-        polling = False
+                    time.sleep(1)
+            except Exception as e:
+                logger.exception('encountered error, printing traceback:')
+            except KeyboardInterrupt:
+                logger.info('...user exit received...')
+                polling = False
