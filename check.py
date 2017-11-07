@@ -94,7 +94,7 @@ def backup_wallet(now):
         return None
 
 
-def copy_wallet(wllt_path):
+def scp_wallet(wllt_path):
     if not wllt_path:
         return
     else:
@@ -173,7 +173,7 @@ if __name__ == '__main__':
                 if new_balance != balance:
                     parse_change(new_balance, balance)
                     bckd_up = backup_wallet(get_now())
-                    copy_wallet(bckd_up)
+                    # scp_wallet(bckd_up)
                     balance = new_balance
                     logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
