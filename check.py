@@ -175,6 +175,7 @@ def parse_change(new_balance, balance):
 
         if pickle_flag:
             copy_pickle(pickle_flag)
+            # scp_pickle(pickle_flag)
 
 
 def initialize_logger():
@@ -210,6 +211,7 @@ if __name__ == '__main__':
                     parse_change(new_balance, balance)
                     bckd_up = backup_wallet(get_now())
                     copy_wallet(bckd_up)
+                    # scp_wallet(bckd_up)
                     balance = new_balance
                     logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
