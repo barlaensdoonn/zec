@@ -11,15 +11,12 @@ import time
 import json
 import yaml
 import addrs
+import shutil
 import check_lew
 import subprocess
 import logging
 import logging.config
 from datetime import datetime
-
-
-def _scp(local_path, remote_path):
-    return subprocess.run(['scp', local_path, remote_path])
 
 
 def _get_dir_path():
@@ -28,6 +25,18 @@ def _get_dir_path():
 
 def _get_pickle_path(pickle_flag):
     return check_lew.get_pymnts(pickle_flag=pickle_flag)
+
+
+def _copy(src_path):
+    dst = addrs.copy_path
+    thng = src_path.split('/')[-1]
+    dst_path = os.path.join(dst, thng)
+
+    return shutil.copy2(src_path, dst_path)
+
+
+def _scp(local_path, remote_path):
+    return subprocess.run(['scp', local_path, remote_path])
 
 
 def _log_new_balance(nblnc, blnc, pymnt, mvmnt):
@@ -96,6 +105,19 @@ def backup_wallet(now):
         logger.error('unable to backup wallet')
         _log_nonzero_returncode(bckp)
         return None
+
+
+def copy_wallet(wllt_path):
+    if not wllt_path:
+        return
+    else:
+        try:
+            cpywllt_path = _copy(wllt_path)
+
+            if os.path.isfile(cpywllt_path):
+                logger.info('wallet backup copied to {}'.format(cpywllt_path))
+        except Exception as e:
+            logger.exception('unable to copy wallet backup to {}, printing traceback:'.format(addrs.copy_path))
 
 
 def scp_wallet(wllt_path):
@@ -176,7 +198,7 @@ if __name__ == '__main__':
                 if new_balance != balance:
                     parse_change(new_balance, balance)
                     bckd_up = backup_wallet(get_now())
-                    # scp_wallet(bckd_up)
+                    copy_wallet(bckd_up)
                     balance = new_balance
                     logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
