@@ -192,19 +192,17 @@ def initialize_logger():
 
 
 if __name__ == '__main__':
-    logger = initialize_logger()
+    try:
+        logger = initialize_logger()
+        logger.info('sleeping for 3 mins')  # wait for system to boot up and zcashd to start
+        time.sleep(180)
 
-    # wait for system to boot up and zcashd to start
-    logger.info('sleeping for 3 mins')
-    time.sleep(180)
+        polling = True
+        balance = get_balance()
+        logger.info('initial balance: {}'.format(balance))
+        logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
-    polling = True
-    balance = get_balance()
-    logger.info('initial balance: {}'.format(balance))
-    logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
-
-    while polling:
-        try:
+        while polling:
             if int(datetime.now().timestamp() % 60) == 0:
                 new_balance = get_balance()
 
@@ -216,8 +214,8 @@ if __name__ == '__main__':
                     logger.info('<> <> <> <> <> <> <> <> <> <> <> <> <>')
 
                 time.sleep(1)
-        except Exception as e:
-            logger.exception('encountered error, printing traceback:')
-        except KeyboardInterrupt:
-            logger.info('...user exit received...')
-            polling = False
+    except Exception as e:
+        logger.exception('encountered error, printing traceback:')
+    except KeyboardInterrupt:
+        logger.info('...user exit received...')
+        polling = False
