@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # use zcash-cli in python
 # 7/19/17
-# updated 10/21/17
+# updated 11/6/17
 
 # TODO: change lews_percent variable in calculate_lews_cut to something that is passed in
 
@@ -28,8 +28,7 @@ def _get_pickle_path(pickle_flag):
     return check_lew.get_pymnts(pickle_flag=pickle_flag)
 
 
-def _copy(src_path):
-    dst = addrs.local_copy_path
+def _copy(src_path, dst):
     thng = src_path.split('/')[-1]
     dst_path = os.path.join(dst, thng)
 
@@ -112,25 +111,28 @@ def copy_wallet(wllt_path):
     if not wllt_path:
         return
     else:
+        dst = addrs.local_copy_path
+
         try:
-            cpywllt_path = _copy(wllt_path)
+            cpywllt_path = _copy(wllt_path, dst)
 
             if os.path.isfile(cpywllt_path):
                 logger.info('wallet backup copied to {}'.format(cpywllt_path))
         except Exception as e:
-            logger.exception('unable to copy wallet backup to {}, printing traceback:'.format(addrs.local_copy_path))
+            logger.exception('unable to copy wallet backup to {}, printing traceback:'.format(dst))
 
 
 def copy_pickle(pickle_flag):
     pckld_path = _get_pickle_path(pickle_flag)
+    dst = addrs.local_pickle_path
 
     try:
-        cpypckl_path = _copy(pckld_path)
+        cpypckl_path = _copy(pckld_path, dst)
 
         if os.path.isfle(pckld_path):
-            logger.info('earnings pickle copied to {}'.format(pckld_path))
+            logger.info('earnings pickle copied to {}'.format(cpypckl_path))
     except Exception as e:
-        logger.exception('unable to copy pickle to {}, printing traceback:'.format(pckld_path))
+        logger.exception('unable to copy pickle to {}, printing traceback:'.format(dst))
 
 
 def scp_wallet(wllt_path):
