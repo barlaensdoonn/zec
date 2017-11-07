@@ -68,7 +68,7 @@ def send_zec(amnt):
         return False
 
 
-def pickle_and_copy(pickle_flag):
+def pickle_and_scp(pickle_flag):
     pckld_path = check_lew.get_pymnts(pickle_flag=pickle_flag)
     logger.info('pickling total zec paid to lew for external earnings calculations')
 
@@ -122,7 +122,7 @@ def parse_change(new_balance, balance):
         pickle_flag = send_zec(lews_cut)
 
         if pickle_flag:
-            pickle_and_copy(pickle_flag)
+            pickle_and_scp(pickle_flag)
 
 
 def initialize_logger():
