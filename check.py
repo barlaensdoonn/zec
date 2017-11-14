@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # use zcash-cli in python
 # 7/19/17
-# updated 11/7/17
+# updated 11/13/17
 
 # TODO: change lews_percent variable in calculate_lews_cut to something that is passed in
 
@@ -111,13 +111,18 @@ def copy_wallet(wllt_path):
     if not wllt_path:
         return
     else:
-        dst = addrs.local_copy_path
+        wllt_zppd = wllt_path.split('/')[-1] + '.zip'
+        dst = os.path.join(addrs.local_copy_path, wllt_zppd)
 
         try:
-            cpywllt_path = _copy(wllt_path, dst)
+            # cpywllt_path = _copy(wllt_path, dst)
+            wllt_cpd = subprocess.run(['7z', 'a', '-p{}'.format(addrs.wrd), dst, wllt_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
-            if os.path.isfile(cpywllt_path):
-                logger.info('wallet backup copied to {}'.format(cpywllt_path))
+            if wllt_cpd.returncode == 0 and os.path.isfile(dst):
+                logger.info('wallet backup copied to {}'.format(dst))
+            else:
+                logger.error('unable to copy wallet backup to {}')
+                _log_nonzero_returncode(wllt_cpd)
         except Exception as e:
             logger.exception('unable to copy wallet backup to {}, printing traceback:'.format(dst))
 
