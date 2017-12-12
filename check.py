@@ -64,8 +64,22 @@ def get_info():
 
 def get_balance():
     taddr = addrs.t_addr
-    balance = subprocess.check_output(['zcash-cli', 'z_getbalance', taddr])
-    return float(balance.decode(sys.stdout.encoding).strip())
+    retries = 5
+
+    while retries:
+        try:
+            balance = subprocess.check_output(['zcash-cli', 'z_getbalance', taddr])
+
+            return float(balance.decode(sys.stdout.encoding).strip())
+        except subprocess.CalledProcessError:
+            logger.error('call to zcash-cli getbalance returned non-zero exit status, zcashd may not be running')
+            retries -= 1
+
+            if retries:
+                logger.info('retrying call in one minute')
+                time.sleep(60)
+            else:
+                return None
 
 
 def calculate_lews_cut(pymnt):
@@ -207,7 +221,10 @@ if __name__ == '__main__':
                 if int(datetime.now().timestamp() % 60) == 0:
                     new_balance = get_balance()
 
-                    if new_balance != balance:
+                    if not new_balance():
+                        logger.error('unable to get balance, exiting...')
+                        polling = False
+                    elif new_balance != balance:
                         parse_change(new_balance, balance)
                         bckd_up = backup_wallet(get_now())
                         copy_wallet(bckd_up)
