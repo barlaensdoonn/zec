@@ -221,7 +221,7 @@ if __name__ == '__main__':
                 if int(datetime.now().timestamp() % 60) == 0:
                     new_balance = get_balance()
 
-                    if not new_balance():
+                    if not new_balance:
                         logger.error('unable to get balance, exiting...')
                         polling = False
                     elif new_balance != balance:
