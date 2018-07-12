@@ -84,7 +84,7 @@ def get_balance():
 
 def calculate_lews_cut(pymnt):
     # $$$ paid / cost of GPU / total # GPUs mining to taddr
-    lews_percent = 0.25
+    lews_percent = 0.33
     lews_cut = pymnt * lews_percent
     lews_cut = round(lews_cut, 8)
     logger.info("lew's cut: {}".format(lews_cut))
